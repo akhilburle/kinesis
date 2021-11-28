@@ -1,7 +1,7 @@
 let width = 750
 let height = 750
 
-let g = 0.0005
+let g = 0.1
 let preview = true;
 let elasticity = 0.4
 
@@ -42,12 +42,12 @@ function update() {
 }
 
 function render() {
-    if (edges.length < nodes.length - 1 && nodes.length == 4) {
+    if (edges.length < nodes.length - 1) {
         edges.push(new Edge(nodes[nodes.length - 1], nodes[nodes.length - 2]))
-        edges.push(new Edge(nodes[nodes.length - 2], nodes[nodes.length - 3]))
-        edges.push(new Edge(nodes[nodes.length - 3], nodes[nodes.length - 4]))
-        edges.push(new Edge(nodes[nodes.length - 4], nodes[nodes.length - 1]))
-        edges.push(new Edge(nodes[nodes.length - 1], nodes[nodes.length - 3]))
+        // edges.push(new Edge(nodes[nodes.length - 2], nodes[nodes.length - 3]))
+        // edges.push(new Edge(nodes[nodes.length - 3], nodes[nodes.length - 4]))
+        // edges.push(new Edge(nodes[nodes.length - 4], nodes[nodes.length - 1]))
+        // edges.push(new Edge(nodes[nodes.length - 1], nodes[nodes.length - 3]))
     }
     nodes.forEach(function (node, index) {
         node.display();
@@ -70,17 +70,18 @@ function keyPressed() {
 class Node {
     constructor(x, y, fixed = false) {
         this.position = createVector(x, y);
-        this.velocity = createVector(0, 0);
+        this.old_position = createVector(x, y);
         this.acceleration = createVector(0, g);
         this.fixed = fixed
     }
 
     update() {
         if (!this.fixed) {
-            let new_pos = this.position.copy().add(this.velocity.copy().mult(deltaTime).add(this.acceleration.copy().mult(deltaTime * deltaTime * 0.5)))
-            let new_vel = this.velocity.copy().add(this.acceleration.copy().mult(deltaTime))
-            this.position = new_pos;
-            this.velocity = new_vel;
+            let temp_pos = this.position.copy();
+            let vel = this.position.copy().sub(this.old_position);
+            this.position.add(vel);
+            this.position.add(this.acceleration);
+            this.old_position = temp_pos.copy();
         }
     }
 
@@ -99,7 +100,7 @@ class Node {
     checkEdges() {
         if (this.position.y > (height - 5)) {
             // A little dampening when hitting the bottom
-            this.velocity.y *= -elasticity;
+            // this.velocity.y *= -elasticity;
             this.position.y = (height - 5);
         }
     };
