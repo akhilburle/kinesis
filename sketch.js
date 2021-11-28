@@ -3,15 +3,18 @@ let height = 750
 
 let g = 0.1
 let preview = true;
-let elasticity = 0.4
+let elasticity = 0.5
 
 let nodes;
 let edges;
+
+let edge_node_buffer;
 
 function setup() {
     createCanvas(width, height);
     nodes = [];
     edges = [];
+    edge_node_buffer = [];
 }
 
 function draw() {
@@ -29,7 +32,6 @@ function update() {
     nodes.forEach(function (node, index) {
         node.update();
         node.checkEdges();
-
     });
     for (let i = 0; i < 5; i++) {
         edges.forEach(function (edge, index) {
@@ -42,13 +44,6 @@ function update() {
 }
 
 function render() {
-    if (edges.length < nodes.length - 1) {
-        edges.push(new Edge(nodes[nodes.length - 1], nodes[nodes.length - 2]))
-        // edges.push(new Edge(nodes[nodes.length - 2], nodes[nodes.length - 3]))
-        // edges.push(new Edge(nodes[nodes.length - 3], nodes[nodes.length - 4]))
-        // edges.push(new Edge(nodes[nodes.length - 4], nodes[nodes.length - 1]))
-        // edges.push(new Edge(nodes[nodes.length - 1], nodes[nodes.length - 3]))
-    }
     nodes.forEach(function (node, index) {
         node.display();
     });
@@ -58,7 +53,21 @@ function render() {
 }
 
 function mouseClicked() {
-    nodes.push(new Node(mouseX, mouseY, keyIsDown(SHIFT)))
+    if (keyIsDown(69)) {
+        for (let index = 0; index < nodes.length; index++) {
+            if (Math.pow(mouseX - nodes[index].position.x, 2) + Math.pow(mouseY - nodes[index].position.y, 2) <= 100) {
+                edge_node_buffer.push(nodes[index]);
+                break;
+            }
+        }
+        if (edge_node_buffer.length >= 2) {
+            edges.push(new Edge(edge_node_buffer[0], edge_node_buffer[1]))
+            edge_node_buffer = []
+        }
+    }
+    else {
+        nodes.push(new Node(mouseX, mouseY, keyIsDown(SHIFT)))
+    }
 }
 
 function keyPressed() {
@@ -99,9 +108,9 @@ class Node {
 
     checkEdges() {
         if (this.position.y > (height - 5)) {
-            // A little dampening when hitting the bottom
-            // this.velocity.y *= -elasticity;
+            let vel_y = this.position.y - this.old_position.y
             this.position.y = (height - 5);
+            this.old_position.y = this.position.y + (vel_y * elasticity);
         }
     };
 }
@@ -118,22 +127,12 @@ class Edge {
     update() {
         this.center = this.src.position.copy().add(this.dest.position).div(2);
         this.dir = this.src.position.copy().sub(this.dest.position).normalize();
-        // stroke('rgb(100%,0%,10%)');
-        // fill('rgb(100%,0%,10%)');
-        // ellipse(this.center.x, this.center.y, 10, 10);
-        // drawArrow(this.center, this.dir.copy().mult(35), 'red')
         if (!this.src.fixed) {
             this.src.position = this.center.copy().add(this.dir.copy().mult(this.length / 2)).copy();
         }
         if (!this.dest.fixed) {
             this.dest.position = this.center.copy().add(this.dir.copy().mult(this.length / -2)).copy();
         }
-        // stroke('rgb(0%,0%,100%)');
-        // fill('rgb(0%,0%,100%)');
-        // ellipse(this.src.position.x, this.src.position.y, 10, 10);
-        // stroke('rgb(0%,100%,0%)');
-        // fill('rgb(0%,100%,0%)');
-        // ellipse(this.dest.position.x, this.dest.position.y, 10, 10);
     }
 
     display() {

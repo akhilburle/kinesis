@@ -1,2 +1,3 @@
 # bure
-Simple kinematics engine that provides a playground environment to test its features
+
+## bure is a simple kinematics engine/playground
