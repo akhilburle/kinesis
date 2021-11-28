@@ -1,7 +1,7 @@
 let width = 750
 let height = 750
 
-let g = 0.1
+let g = 0.0005
 let preview = true;
 let elasticity = 0.4
 
@@ -19,23 +19,39 @@ function draw() {
     stroke(0);
     strokeWeight(2);
 
+    if (!preview) {
+        update()
+    }
+    render();
+}
+
+function update() {
     nodes.forEach(function (node, index) {
-        if (!preview) {
-            node.update();
+        node.update();
+        node.checkEdges();
+
+    });
+    for (let i = 0; i < 5; i++) {
+        edges.forEach(function (edge, index) {
+            edge.update();
+        });
+        nodes.forEach(function (node, index) {
             node.checkEdges();
-        }
+        });
+    }
+}
+
+function render() {
+    if (edges.length < nodes.length - 1 && nodes.length == 4) {
+        edges.push(new Edge(nodes[nodes.length - 1], nodes[nodes.length - 2]))
+        edges.push(new Edge(nodes[nodes.length - 2], nodes[nodes.length - 3]))
+        edges.push(new Edge(nodes[nodes.length - 3], nodes[nodes.length - 4]))
+        edges.push(new Edge(nodes[nodes.length - 4], nodes[nodes.length - 1]))
+        edges.push(new Edge(nodes[nodes.length - 1], nodes[nodes.length - 3]))
+    }
+    nodes.forEach(function (node, index) {
         node.display();
     });
-    if (edges.length < nodes.length - 1) {
-        edges.push(new Edge(nodes[nodes.length - 1], nodes[nodes.length - 2]))
-    }
-    if (!preview) {
-        for (let i = 0; i < 50; i++) {
-            edges.forEach(function (edge, index) {
-                edge.update();
-            });
-        }
-    }
     edges.forEach(function (edge, index) {
         edge.display();
     });
@@ -61,8 +77,10 @@ class Node {
 
     update() {
         if (!this.fixed) {
-            this.velocity.add(this.acceleration);
-            this.position.add(this.velocity);
+            let new_pos = this.position.copy().add(this.velocity.copy().mult(deltaTime).add(this.acceleration.copy().mult(deltaTime * deltaTime * 0.5)))
+            let new_vel = this.velocity.copy().add(this.acceleration.copy().mult(deltaTime))
+            this.position = new_pos;
+            this.velocity = new_vel;
         }
     }
 
@@ -109,14 +127,12 @@ class Edge {
         if (!this.dest.fixed) {
             this.dest.position = this.center.copy().add(this.dir.copy().mult(this.length / -2)).copy();
         }
-        // console.assert(assert1.x == assert2.x && assert1.y == assert2.y)
-        // console.log(this.dir);
         // stroke('rgb(0%,0%,100%)');
         // fill('rgb(0%,0%,100%)');
-        // ellipse(bla_src.x, bla_src.y, 10, 10);
+        // ellipse(this.src.position.x, this.src.position.y, 10, 10);
         // stroke('rgb(0%,100%,0%)');
         // fill('rgb(0%,100%,0%)');
-        // ellipse(bla_dest.x, bla_dest.y, 10, 10);
+        // ellipse(this.dest.position.x, this.dest.position.y, 10, 10);
     }
 
     display() {
