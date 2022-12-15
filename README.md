@@ -1,3 +1,3 @@
-# bure
+# kinesis
 
-## bure is a simple kinematics engine/playground
+## kinesis a simple kinematics engine/playground
